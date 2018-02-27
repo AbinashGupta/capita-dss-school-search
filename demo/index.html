@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>polymercli</title>
+    <meta name="description" content="polymercli description">
+
+    <!-- See https://goo.gl/OOhYW5 -->
+    <link rel="manifest" href="/manifest.json">
+
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+    <link rel="import" href="../../capita-dss-school-search/school-search.html">
+    <!-- <link rel="stylesheet" href="/css/style.css"> -->
+    
+
+    <style>
+      *{
+        padding: 0;
+        margin: 0;
+      }
+     body{
+        font-family: Arial, Helvetica, sans-serif;       
+      }
+    </style>
+  </head>
+  <body>
+    
+    <school-search api-url="http://ec2-18-222-60-204.us-east-2.compute.amazonaws.com:8080/schools"  on-map-click="function() {console.log(inside function)}"></school-search>
+  </body>
+</html>

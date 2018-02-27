@@ -1,0 +1,15 @@
+{
+  "name": "capita-dss-school-search",
+  "version":"0.1.0",
+  "main": "index.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "google-map": "^2.0.4",
+    "google-apis": "^2.0.1",
+    "webcomponentsjs": "^1.1.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  }
+}

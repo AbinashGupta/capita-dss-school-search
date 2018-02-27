@@ -1,0 +1,221 @@
+<link rel="import" href="https://polygit.org/polymer+v2.0.0/shadycss+webcomponents+1.0.0/components/iron-ajax/iron-ajax.html">
+<link rel="import" href="https://polygit.org/components/polymer/polymer-element.html">
+<link rel="import" href="../google-map/google-map.html">
+<link rel="import" href="../google-apis/google-maps-api.html">
+
+<dom-module id="school-search">
+
+  <template> 
+    <style>
+      :host {
+        display: block;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      google-map {
+        height: 200px;
+      }
+      .logo {
+        color: white;
+        text-align: center;
+      }
+      .searchInput {
+        text-align: center;
+      }
+      .searchInput input[type=text] {
+        border: 1px solid #0684f2;
+        padding: 10px;
+        border-radius: 4px;
+        min-width: 400px;
+        font-size: 14px;
+      }
+      header {
+        padding: 10px;
+        background-color: var(--school-search-header-background-color, #3d4a5d);
+      }
+      .search-results {
+        margin-right: auto;
+        margin-left: auto;
+        /* text-align: center; */
+      }
+      .panel {
+        width: 70%;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        margin-right: auto;
+        margin-left: auto;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+      }
+      .panel-body {
+        padding: 15px;
+      }
+      .panel-heading {
+        padding: 10px 15px;
+        border-bottom: 1px solid transparent;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+        text-align: center;
+        background-color: #52bcdc;
+      }
+      .panel-primary {
+        border-color: #2cadd4;
+      }
+      .panel-primary>.panel-heading {
+        color: white;
+        background-color: #52bcdc;
+        border-color: #2cadd4;
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+      .panel-primary>.panel-heading+.panel-collapse>.panel-body {
+        border-top-color: #2cadd4;
+      }
+      .panel-primary>.panel-heading .badge {
+        color: black;
+        background-color: #fff;
+      }
+      .panel-primary>.panel-footer+.panel-collapse>.panel-body {
+        border-bottom-color: #2cadd4;
+      }
+      .data-label {
+        font-weight: bold;
+      }
+      .no-schools {
+        text-align: center;
+        font-weight: bold;
+        color: blue;
+      }
+    </style>
+    <header>
+      <h2 class="logo">
+        SchoolFinder
+      </h2>
+    </header>
+    <iron-ajax auto id="requestSchools" url="{{apiUrl}}" handle-as="json" params="{{getQueryParams(searchValue)}}" on-response="handleResponse" last-response="{{schools}}"
+      debounce-duration="500">
+    </iron-ajax>
+    <br>
+    <div class="searchInput">
+      <input type="text" placeholder="Search school" name="school_input" value="{{searchValue::input}}">
+    </div>
+
+    <br>
+    <div class="search-results">
+      <div hidden$="{{checkhide(schools)}}" class="no-schools"> Oops! No schools meeting your search criteria.</div>
+      <template is="dom-repeat" items="[[schoolData]]">
+        <div class="panel panel-primary">
+          <div class="panel-heading">{{item.name}}</div>
+          <div class="panel-body">
+            <div class="school-data">
+              <span class="data-label">Address : </span>
+              <span>{{item.address}}, Ph: {{item.phone}}</span>
+            </div>
+            <div class="school-data">
+              <span class="data-label">Weblink : </span>
+              <a target="_blank" href="{{item.weblink}}">{{item.weblink}}</a>
+            </div>
+            <div class="school-data">
+              <span class="data-label">Rating : </span>
+              <span>{{item.rating}}</span>
+            </div>
+            <div><a target="blank" href="javascript:void(0)" on-click="handlemapClick" id="BTN{{item.URN}}">Get directions </a></div>
+            <div hidden$="{{!item.showMap}}" id="MAP{{item.URN}}">
+              <google-map latitude="{{item.loc.coordinates.1}}" longitude="{{item.loc.coordinates.0}}" api-key="AIzaSyD3E1D9b-Z7ekrT3tbhl_dy8DCXuIuDDRc"
+                fit-to-markers>
+                <google-map-marker latitude="{{item.loc.coordinates.1}}" longitude="{{item.loc.coordinates.0}}" draggable="true"></google-map-marker>
+              </google-map>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    class SchoolSearchComponent extends Polymer.Element {
+      static get is() {
+        return 'school-search';
+      }
+      static get properties() {
+        return {
+          name: {
+            type: Function
+          },
+          prop1: {
+            type: String,
+            value: 'school-search'
+          },
+          searchValue: {
+            type: String,
+            value: '',
+            observer: "searchValueChanged"
+          },
+          apiUrl: {
+            type: String
+          },
+          schoolData: {
+              type: Array
+          }
+        };
+      }
+      searchValueChanged() {
+        this.$.requestSchools.generateRequest();
+      }
+
+      handleResponse(eventData,sample){
+          this.schoolData = eventData.detail.xhr.response.map((val) =>{
+                val.showMap = false;
+                return val
+          });
+      }
+      getQueryParams(val) {
+        return {
+          search: val
+        };
+      }
+      checkhide(schools) {
+        if (schools && schools.length == 0) {
+          return false
+        }
+        else {
+          return true
+        }
+      }
+    
+      handlemapClick(event, detail, sender) {
+
+        var btnId = '#' + event.path[0].id;
+        var mapId = "#MAP" + btnId.substr(4,6);
+        if (event.model.__data.item.showMap === false) {
+          //find school and invert showMap
+          for (let i=0; i<this.schoolData.length; i++) {
+            if (this.schoolData[i].URN === event.model.__data.item.URN) {
+              this.schoolData[i].showMap = !this.schoolData[i].showMap;
+              break;
+            }
+          }
+          this.shadowRoot.querySelector(btnId).text = "Hide Directions"
+          this.shadowRoot.querySelector(mapId).style.display = 'block';
+        }
+        else {
+          //find school and invert showMap
+          for (let i=0; i<this.schoolData.length; i++) {
+            if (this.schoolData[i].URN === event.model.__data.item.URN) {
+              this.schoolData[i].showMap = !this.schoolData[i].showMap;
+              break;
+            }
+          }
+          this.shadowRoot.querySelector(btnId).textContent = "Get Directions"
+          this.shadowRoot.querySelector(mapId).style.display = 'none';
+        }
+
+      }
+    }
+    window.customElements.define(SchoolSearchComponent.is, SchoolSearchComponent);
+  </script>
+</dom-module>
